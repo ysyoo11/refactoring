@@ -1,8 +1,7 @@
 export function price(order) {
-  // 가격(price) = 기본가격 - 수량할인 + 배송비
-  return (
-    order.quantity * order.itemPrice -
-    Math.max(0, order.quantity - 500) * order.itemPrice * 0.05 +
-    Math.min(order.quantity * order.itemPrice * 0.1, 100)
-  );
+  const { quantity, itemPrice } = order;
+  const basePrice = quantity * itemPrice;
+  const discount = Math.max(0, quantity - 500) * itemPrice * 0.05;
+  const shippingFee = Math.min(basePrice * 0.1, 100);
+  return basePrice - discount + shippingFee;
 }
