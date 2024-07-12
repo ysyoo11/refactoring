@@ -1,11 +1,21 @@
 export function adjustedCapital(instrument) {
-  let result = 0;
-  if (instrument.capital > 0) {
-    if (instrument.interestRate > 0 && instrument.duration > 0) {
-      result =
-        (instrument.income / instrument.duration) *
-        anInstrument.adjustmentFactor;
-    }
-  }
-  return result;
+  return isEligibleForAdjustedCapital(instrument)
+    ? (instrument.income / instrument.duration) * anInstrument.adjustmentFactor
+    : 0;
+}
+
+export function adjustedCapital2(instrument) {
+  if (!isEligibleForAdjustedCapital(instrument)) return 0;
+
+  return (
+    (instrument.income / instrument.duration) * anInstrument.adjustmentFactor
+  );
+}
+
+function isEligibleForAdjustedCapital(instrument) {
+  return (
+    instrument.capital > 0 &&
+    instrument.interestRate > 0 &&
+    instrument.duration > 0
+  );
 }
