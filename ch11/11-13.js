@@ -1,14 +1,11 @@
 const values = [];
 function getValueForPeriod(periodNumber) {
-  const value = values[periodNumber];
-  if (!value) {
-    throw new Error('value is undefined');
-  }
-  return value;
+  return values[periodNumber] ?? 0;
 }
 
-try {
-  getValueForPeriod(-10);
-} catch (error) {
-  console.log('에러 발생!');
-}
+getValueForPeriod(-10);
+
+/**
+ * 예상되는 에러라면 try/catch를 사용하지 말자
+ * 정말 예상 못한 에러가 발생할 수 있는 경우에만 try/catch 를 사용하자
+ */
