@@ -1,3 +1,5 @@
+import { Performance } from './modules/performance.js';
+
 export function createStatement(invoice, plays) {
   const statement = {};
   statement.customer = invoice.customer;
@@ -7,7 +9,7 @@ export function createStatement(invoice, plays) {
   return statement;
 
   function enrichPerformance(performance) {
-    const result = { ...performance };
+    const result = new Performance(performance.playID, performance.audience);
     result.play = playFor(performance);
     result.amount = amountFor(result);
     result.credits = creditsFor(result);

@@ -1,81 +1,33 @@
-import { createStatement } from './create_statement.js';
+import { Play } from './modules/play.js';
+import { Invoice } from './modules/invoice.js';
+import { Performance } from './modules/performance.js';
+import { Statement } from './modules/statement.js';
+import { Renderer } from './modules/renderer.js';
 
 export function statement(invoice, plays) {
-  return renderPlainText(createStatement(invoice, plays));
+  return new Renderer(Statement.create(invoice, plays)).plainText();
 }
 
 export function htmlStatement(invoice, plays) {
-  return renderHTML(createStatement(invoice, plays));
-}
-
-function renderHTML(statement) {
-  let result = `<h1>청구 내역 (고객명: ${statement.customer})</h1>\n`;
-  result += '<table>\n';
-  result += '<tr><th>play</th><th>석</th><th>cost</th></tr>';
-  for (const perf of statement.performances) {
-    result += `  <tr><td>${perf.play.name}</td><td>${perf.audience}</td>`;
-    result += `<td>${formatToUSD(perf.amount / 100)}</td></tr>\n`;
-  }
-
-  result += `</table>\n`;
-  result += `<p>총액: <em>${formatToUSD(
-    statement.totalAmount / 100
-  )}</em></p>\n`;
-  result += `<p>적립 포인트: <em>${statement.totalCredits}</em>점</p>\n`;
-  return result;
-}
-
-function renderPlainText(statement) {
-  let result = `청구 내역 (고객명: ${statement.customer})\n`;
-
-  for (const perf of statement.performances) {
-    result += `  ${perf.play.name}: ${formatToUSD(perf.amount / 100)} (${
-      perf.audience
-    }석)\n`;
-  }
-
-  result += `총액: ${formatToUSD(statement.totalAmount / 100)}\n`;
-  result += `적립 포인트: ${statement.totalCredits}점\n`;
-  return result;
-}
-
-function formatToUSD(number) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-  }).format(number);
+  return new Renderer(Statement.create(invoice, plays)).html();
 }
 
 // 사용예:
 const playsJSON = {
-  hamlet: { name: 'Hamlet', type: 'tragedy' },
-  'as-like': { name: 'As You Like It', type: 'comedy' },
-  othello: { name: 'Othello', type: 'tragedy' },
+  hamlet: Play.createTragedyPlay('Hamlet'),
+  'as-like': Play.createComedyPlay('As You Like It'),
+  othello: Play.createTragedyPlay('Othello'),
 };
 
-const invoicesJSON = [
-  {
-    customer: 'BigCo',
-    performances: [
-      {
-        playID: 'hamlet',
-        audience: 55,
-      },
-      {
-        playID: 'as-like',
-        audience: 35,
-      },
-      {
-        playID: 'othello',
-        audience: 40,
-      },
-    ],
-  },
+const performances = [
+  new Performance('hamlet', 55),
+  new Performance('as-like', 35),
+  new Performance('othello', 40),
 ];
+const invoicesJSON = [new Invoice('BigCo', performances)];
 
 const result = statement(invoicesJSON[0], playsJSON);
-console.log(htmlStatement(invoicesJSON[0], playsJSON));
+// console.log(htmlStatement(invoicesJSON[0], playsJSON));
 const expected =
   '청구 내역 (고객명: BigCo)\n' +
   '  Hamlet: $650.00 (55석)\n' +
