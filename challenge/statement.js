@@ -1,61 +1,42 @@
+import { createStatement } from './create_statement.js';
+
 export function statement(invoice, plays) {
-  return renderPlainText(invoice, plays);
+  return renderPlainText(createStatement(invoice, plays));
 }
 
-function renderPlainText(invoice, plays) {
-  let result = `청구 내역 (고객명: ${invoice.customer})\n`;
-  for (const perf of invoice.performances) {
-    result += `  ${playFor(perf).name}: ${formatToUSD(
-      amountFor(perf) / 100
-    )} (${perf.audience}석)\n`;
+export function htmlStatement(invoice, plays) {
+  return renderHTML(createStatement(invoice, plays));
+}
+
+function renderHTML(statement) {
+  let result = `<h1>청구 내역 (고객명: ${statement.customer})</h1>\n`;
+  result += '<table>\n';
+  result += '<tr><th>play</th><th>석</th><th>cost</th></tr>';
+  for (const perf of statement.performances) {
+    result += `  <tr><td>${perf.play.name}</td><td>${perf.audience}</td>`;
+    result += `<td>${formatToUSD(perf.amount / 100)}</td></tr>\n`;
   }
 
-  result += `총액: ${formatToUSD(totalAmount() / 100)}\n`;
-  result += `적립 포인트: ${totalCredits()}점\n`;
+  result += `</table>\n`;
+  result += `<p>총액: <em>${formatToUSD(
+    statement.totalAmount / 100
+  )}</em></p>\n`;
+  result += `<p>적립 포인트: <em>${statement.totalCredits}</em>점</p>\n`;
   return result;
+}
 
-  function playFor(performance) {
-    return plays[performance.playID];
+function renderPlainText(statement) {
+  let result = `청구 내역 (고객명: ${statement.customer})\n`;
+
+  for (const perf of statement.performances) {
+    result += `  ${perf.play.name}: ${formatToUSD(perf.amount / 100)} (${
+      perf.audience
+    }석)\n`;
   }
 
-  function creditsFor(performance) {
-    let result = 0;
-    result += Math.max(performance.audience - 30, 0);
-    if (playFor(performance).type === 'comedy') {
-      result += Math.floor(performance.audience / 5);
-    }
-    return result;
-  }
-
-  function amountFor(performance) {
-    let result = 0;
-    switch (playFor(performance).type) {
-      case 'tragedy':
-        result = 40000;
-        if (performance.audience > 30) {
-          result += 1000 * (performance.audience - 30);
-        }
-        break;
-      case 'comedy':
-        result = 30000;
-        if (performance.audience > 20) {
-          result += 10000 + 500 * (performance.audience - 20);
-        }
-        result += 300 * performance.audience;
-        break;
-      default:
-        throw new Error(`알 수 없는 장르: ${playFor(performance).type}`);
-    }
-    return result;
-  }
-
-  function totalAmount() {
-    return invoice.performances.reduce((sum, p) => sum + amountFor(p), 0);
-  }
-
-  function totalCredits() {
-    return invoice.performances.reduce((sum, p) => sum + creditsFor(p), 0);
-  }
+  result += `총액: ${formatToUSD(statement.totalAmount / 100)}\n`;
+  result += `적립 포인트: ${statement.totalCredits}점\n`;
+  return result;
 }
 
 function formatToUSD(number) {
@@ -94,6 +75,7 @@ const invoicesJSON = [
 ];
 
 const result = statement(invoicesJSON[0], playsJSON);
+console.log(htmlStatement(invoicesJSON[0], playsJSON));
 const expected =
   '청구 내역 (고객명: BigCo)\n' +
   '  Hamlet: $650.00 (55석)\n' +
